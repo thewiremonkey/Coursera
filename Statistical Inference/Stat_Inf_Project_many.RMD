@@ -1,0 +1,193 @@
+---
+title: "The Central Limit Theorem"
+output: html_document
+---
+#Introduction
+
+The Central Limit Theorem (CLT)states that the distribution of averages of iid variables (properly normalized) becomes that of a standard normal as the *sample size increases*.  This means that it is possible to get an approximation of mean and standard deviation for the whole distribution with only one observed average and without knowing the population distribution.
+
+The result of increasing sample size is that $$\frac{\bar X_n - \mu}{\sigma / \sqrt{n}}= \frac{\sqrt n (\bar X_n - \mu)}{\sigma} = \frac{\mbox{Estimate} - \mbox{Mean of estimate}}{\mbox{Std. Err. of estimate}}$$  
+converges on a distribution similar to that of the standard normal range for large $n$
+
+The useful way to think about the CLT is that $\bar X_n$ is approximately $N(\mu, \sigma^2 / n)$
+```{r message=FALSE}
+library(knitr)
+library(dplyr)
+library(reshape2)
+library(ggplot2)
+
+```
+
+#Test the Central Limit Theorem by simulation:
+
+##Some Initial Assumptions
+
+The theoretical mean ($\mu$) and variance $Var$ of exponential distribution with parameter $\lambda$ are respectively $1/\lambda$ and $1/\lambda^2$,
+
+If the CLT is true, then:
+
+The mean of our simulation $\bar X_n$ should approach $\mu$, i.e., $\frac{1}{0.2}$ or: `r 1/0.2`  
+
+The variance of our simulation, $Var_n$ should approach $1/\lambda^2$, i.e, $\frac{1}{0.2^2}$ or `r 1/(0.2^2)`
+
+The variance of our sample mean is the $Var_n$ divided by the our sample number*  $Var_n(\bar X)$ should approach  $\sigma^2/n$, i.e. $\frac{1}{{0.2^2}/40}$ or `r 1/(0.2^2)/40`
+
+The standard deviation $\sigma$ is the square root of the $Var$ so $Var$ = $\sigma^2$ ans should approach $\sqrt\frac{1}{{0.2^2}/40}$ or `r sqrt(1/(0.2^2)/40)`
+
+Let's find out if this is true by using simulation.  We'll compare three data sets:  
+small: $n$ = 40 * 10  
+medium: $n$ = 40 * 1,000  
+big: $n$ = 40 * 100,000  
+
+#Set Constants
+* The rate parameter, $\lambda$ , as prescribed by the assignment, is 0.2 
+* The number of random exponentials to means test, $n$ is 40.  
+* The seed is 127  
+* The number of simulations of 40 random exponents is 1000
+* Theoretical constants:  
+        - Theoretical means
+        - Standard deviation    
+        - Variance of sample mean 
+* set the options to display four digits after the decimal.  
+
+```{r}
+l = 0.2 #lambda, as prescribed in assignment
+ex = 40 #number of exponentials examined
+sims = 1000 #number of simulations
+set.seed(127)#seed set for reproducibility
+
+tmean<-1/l #theoretical mean
+tsd<-1/l/sqrt(ex) #theoritical standard deviation
+tvar<-(1/l/sqrt(ex))^2 #theoretical variance
+
+options(digits = 4)
+```
+
+Create a matrix 40 columns by 1000 rows using the same random seed
+
+Each sample consists of 40 random exponents, the seed is set to 127.  
+This sample is drawn 1000 times.
+
+We'll draw two histograms comparing these two draws.  
+Since they both use the same seed and draw the same total number of samples, as expected, the histograms are identical.
+```{r}
+
+
+small<-matrix(rexp(ex*sims/1000, .2), nrow=sims/1000, ncol=ex)
+medium <- matrix(rexp(ex * sims, .2), nrow = sims, ncol=ex)
+large<-matrix(rexp(ex*sims*100, .2), nrow=sims, ncol=ex)
+
+par(mfrow=c(1,3))
+hist(small, breaks = 40, main="n = 40 X 10", xlab=paste("mean:", round(mean(small), digits = 4), sep=" "))
+abline(v=mean(medium), col="red", lwd=3)
+
+hist(medium, breaks = 40, main="n = 40 X 1000", xlab=paste("mean:", round(mean(medium), digits = 4), sep=" "))
+abline(v=mean(medium), col="red", lwd=3)
+
+hist(large, breaks = 40, main="n = 40 X 100,000", xlab=paste("mean:", round(mean(large), digits = 4), sep=" "))
+abline(v=mean(large), col="red", lwd=3)
+
+```
+
+Now let's take a look at the mean of the each of the 40 sample draws:
+
+
+```{r}
+
+#create a data frame of sample means for our small set
+small<-data.frame(value=rowMeans(small))
+
+#create a data frame of sample means for our medium set
+medium<-data.frame(value=rowMeans(medium))
+
+#create a data frame of sample means for our large set
+large<-data.frame(value=rowMeans(large))
+
+#melt the data for ease of use in ggplot2 facets
+all<-melt(data=c(sample1=small, sample2=medium, sample3=large), variable.name = "variable")
+
+##some calculations that will come in handy as we generate our plots:
+
+#calculate the sample mean
+smean<-mean(all$value)
+
+#calculate the sample standard deviation
+ssd<-sd(all$value)
+
+#calculate the sample variance
+svar<-var(all$value)
+
+```
+
+#Comparison of Three Sets of Sample Means
+
+As the number of means of sample means increases, the plot more closely resembles the normal distribution.
+
+```{r message=FALSE}
+
+
+ch1<-ggplot(all, aes(value), col=L1, width="600px")+
+        geom_histogram(aes(y =..density..), alpha=.5)+
+        geom_vline(xintercept=mean(all$value), col="blue")+
+        geom_vline(xintercept=tmean, col="red")+
+        theme_bw()+
+        facet_grid(.~L1, scales="free_y")
+ch1
+
+```
+
+The theoretical mean, $\mu$ and the sample mean $\bar X$ are very close in all three plots.
+
+```{r}
+#calculate the sample mean
+smean<-mean(all$value)
+
+#calculate the sample standard deviation
+ssd<-sd(all$value)
+
+#calculate the sample variance
+svar<-var(all$value)
+```
+
+##Compare Variance of the Sample Mean:
+
+The theoretical variance of the sample mean is equal to $1/(\lambda^2/n)$, where $n$=sample number. 
+
+Plugging in the values, $\lambda$ = .2, $n$=40: 
+
+The **Theoretical** $Var$, $\sigma^2$, of sample means is **`r tvar`**  (in red, below)
+
+The **Calculated** $Var$, $Var_n(\bar X)$, of the sample mean is **`r svar` ** (in blue, below)
+
+```{r}
+
+
+ch2<-ggplot(all, aes(value))+
+        geom_histogram(aes(y =..density.., col=L1), fill=NA, alpha=.3)+
+        geom_vline(xintercept=c(smean-svar, smean+svar), col="blue")+
+        geom_vline(xintercept=c(tmean-tvar, tmean+tvar), col="red")+
+        theme_bw()+
+        theme(legend.position="none")+
+        facet_grid(.~L1, scales="free_y")
+
+ch2
+```
+
+##Compare Density Distribution:
+As the number of means of sample means ($n$ times the number of simulations) increases, the density plot should more closely resemble the Normal density plot.
+
+To compare densities, we can overlay a density plot for the distribution of the calculated sample means with a theoretical normal distribution density (the classic $bell$ curve) to test this.  
+```{r}
+
+
+ch3<-ggplot(all, aes(value, col=L1))+
+        geom_density()+
+        stat_function(fun=dnorm, args=list(mean(all$value, sd=sd(all$value))), col="blue",lwd=1, lty=2)+
+        geom_vline(xintercept=mean(all$value), stat="vline")+
+        geom_vline(xintercept=1/l, stat_vline=1/l, col="red", linetype = "longdash")+
+        theme_bw()
+
+ch3
+```
+
+*(for smaller numbers, the sample number is corrected by subtracting 1, but we're working with larger sample sizes here, so we'll stick with $n$)

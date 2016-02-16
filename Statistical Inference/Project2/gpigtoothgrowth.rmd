@@ -1,0 +1,262 @@
+---
+title: The Effect of Vitamin C Delivery Method and Dose Level on Tooth Growth in Guinea
+  Pigs
+author: "Alyssa Goldberg"
+date: "November 20, 2015"
+output: html_document
+---
+##Hypothesis
+$H_0$ states that neither the delivery method of vitamin C, nor the dose level of vitamin C affects tooth growth in guinea pigs.
+
+```{r, message=FALSE, echo=F}
+rm(list=ls()) 
+
+library(datasets)
+library(knitr)
+library(dplyr)
+library(reshape2)
+library(ggplot2)
+library(data.table)
+library(gridExtra)
+
+data(ToothGrowth)
+```
+
+##The Data Set
+
+The data set, "ToothGrowth" is loaded from the data package in R. and includes the following:
+
+**Description**
+
+The response is the length of odontoblasts (teeth) in each of 10 guinea pigs at each of three dose levels of Vitamin C (0.5, 1, and 2 mg) with each of two delivery methods (orange juice or ascorbic acid).  
+
+**Source**
+
+C. I. Bliss (1952) The Statistics of Bioassay. Academic Press.
+
+**References**
+
+McNeil, D. R. (1977) Interactive Data Analysis. New York: Wiley.
+
+###Format
+The data set has 60 observations with 3 variables, but further inpections shows us that *dose* should be a factor, not numeric, as there are only three discrete options.
+
+```{r echo=FALSE}
+data(ToothGrowth)
+d<-ToothGrowth
+str(d)
+```
+```{r results='asis'}
+unique(d$dose)
+```
+
+```{r echo=FALSE}
+d$dose<-as.factor(d$dose)
+```
+###Transform the data for inspection
+
+By creating individual factors for each of the six supplement~dose combinations, we can easily plot the data for initial exploration.
+```{r results="asis"}
+d2<-mutate(d, dosexsupp=factor(paste(supp, dose,"_")))
+```
+
+A violin plot, similar to a box plot, offers visually striking and intuitive way to see distributions of factor.
+
+Visual inspections suggests that there may not be a significant difference between supplement types in and of themselves, but perhaps when broken down by dose and type there is.
+
+```{r echo=FALSE}
+figall<-ggplot(d2, aes(x=supp, y=len, fill=dose))+
+       geom_violin(trim = TRUE)+
+        geom_hline(yintercept=mean(d$len))+
+        theme_bw()
+
+figdose<-ggplot(d, aes(x=dose, y=len, fill=supp))+
+        geom_violin(trim = TRUE)+
+        geom_hline(yintercept=mean(d$len))+
+        geom_hline(yintercept=mean(d$len))+
+        theme_bw()
+
+figsupp<-ggplot(d, aes(x=supp, y=len, fill=supp))+
+        geom_violin(trim = TRUE)+
+        geom_hline(yintercept=mean(d$len))+
+        theme_bw()
+```
+```{r echo=FALSE}
+grid.arrange(figdose, figsupp, figall, nrow=2, ncol=2)
+```
+
+We'll confirm with a t.test comparing our variables.
+since each of the 60 subjects in our study are independent, we'll do an unpaired t-test. Additionally, since we're only concerned with the greatest amount of growth difference, we'll set var.equal to false.
+
+###Compare Supplements
+
+Null hypothesis $H_0$ is that there is no difference in effect on tooth growth that can be attributed to supplement type in and of itself.  
+```{r results="as is"}
+suppstest <- t.test(len ~ supp, data = d, paired = FALSE, var.equal = FALSE)
+```
+Since our p-value = `r suppstest$p.value` is above .05 and the confidence interval is `r suppstest$conf.int` which includes 0, we cannot reject the null hypothesis.
+```{r echo=FALSE}
+suppstest
+```
+
+###Compare Doses
+Null hypothesis $H_0$ is that there is no difference in effect on tooth growth that can be attributed to dose level and supplement type. The alternative hypothesis $H_a$ states that dose level and supplement type have a positive effect on tooth growth.
+
+We'll create three subsets of data in order to compare them
+```{r echo=FALSE}
+d0510<-filter(d, dose==c(.5, 1))
+d0520<-filter(d, dose==c(.5, 2))
+d1020<-filter(d, dose==c(1,2))
+
+t0510<-t.test(len~supp, data = d0510, paired = FALSE, var.equal = FALSE)
+t0520<-t.test(len~supp, data = d0520, paired = FALSE, var.equal = FALSE)
+t1020<-t.test(len~supp, data = d1020, paired = FALSE, var.equal = FALSE)
+
+compareall<-data.frame()
+
+t0510<-c("p"=t0510$p.value, "CIMIN"=t0510$conf.int[1],"CIMAX"=t0510$conf.int[2], "OJ"=t0510$estimate[1], "VC"=t0510$estimate[2])
+
+t0520<-c("p"=t0520$p.value, "CIMIN"=t0520$conf.int[1],"CIMAX"=t0520$conf.int[2], "OJ"=t0520$estimate[1], "VC"=t0520$estimate[2])
+
+t1020<-c("p"=t1020$p.value, "CIMIN"=t1020$conf.int[1],"CIMAX"=t1020$conf.int[2], "OJ"=t1020$estimate[1], "VC"=t1020$estimate[2])
+
+tall<-data.frame(rbind(t0510, t0520, t1020 ))
+names(tall)<-c("p", "CiMin", "CiMax", "OJMean", "VCMean")
+rownames(tall)<-c("0.5 vs 1.0 mg", "0.5 vs 2.0 mg", "1.0 vs 2.0 mg")
+```
+In the comparison between .5 and 1.0 mg, the p-value is quite low `r tall[1,1]` and the confidence interval `r tall[1,2]` to `r tall[1,3]` does not encompass 0, so we can reject the $H_0$ in this case.  
+
+For the comparisons between OJ and VC with 2.0 mg, the p-value is above 0.05 (`r tall[2,1]` and `r tall[3,1]`) and the confidence intervals both include zero (`r tall[2,2]` to `r tall[2,3]` and `r tall[3,2]` to `r tall[3,3]`), therefore we do not reject $H_0$ for the 2.0 dose group.  There does not appear to be a significant difference in results between the two delivery methods at this level.
+
+```{r}
+kable(tall)
+```
+
+Since we cannot reject $H_0$ for the 2.0 dose level, the next exploration will be between OJ and VC at the .5 and 1.0 level.
+
+```{r echo=F}
+final5<-filter(d, dose==0.5)
+final10<-filter(d, dose==1.0)
+
+tfinal5<-t.test(len~supp, data = final5, paired = FALSE, var.equal = FALSE)
+tfinal10<-t.test(len~supp, data=final10, paired=F, var.equal=F)
+
+tfinal5<-c("p"=tfinal5$p.value, "CIMIN"=tfinal5$conf.int[1],"CIMAX"=tfinal5$conf.int[2], "OJ"=tfinal5$estimate[1], "VC"=tfinal5$estimate[2])
+
+tfinal10<-c("p"=tfinal10$p.value, "CIMIN"=tfinal10$conf.int[1],"CIMAX"=tfinal10$conf.int[2], "OJ"=tfinal10$estimate[1], "VC"=tfinal10$estimate[2])
+
+tfinalall<-data.frame(rbind(tfinal5, tfinal10))
+names(tfinalall)<-c("p", "CiMin", "CiMax", "OJMean", "VCMean")
+rownames(tfinalall)<-c(".5 mg", "1.0 mg")
+```
+
+This test confirms that at the both the 0.5 and 1.0 dose levels, Orange Juice (OJ), appears to have a significantly greater positive effect on tooth growth in Guinea Pigs than Ascorbic Acid.  
+
+```{r echo=F}
+kable(tfinalall)
+```
+
+## Lower doses within delivery type groups
+A violin plot of the two lower doses shows us that OJ is "top-heavy" in the 0.5 dose level and has a greater but more evenly distributed spread at the 1.0 dose.  VC, on the other hand, is "bottom-heavy" at the 0.5 dose level and more narrowly distributed with regards to length, slightly skewed toward greater length at the 1.0 dose.
+
+```{r echo=FALSE}
+dOJ<-filter(d, dose==c(.5, 1.0), supp=="OJ")
+dVC<-filter(d, dose==c(.5, 1.0), supp=="VC")
+dOJVC<-filter(d, dose==c(.5, 1.0))
+
+ggplot(dOJVC, aes(x=dose, y=len, fill=supp) )+ 
+        geom_violin(trim = TRUE)+
+        geom_hline(yintercept=mean(dOJVC$len))+
+        theme_bw()
+```
+
+A t-test confirms that there is significant difference, with higher doses resulting in greater tooth growth, in both nutrient delivery modalities.
+
+```{r}
+tOJ<-t.test(len~dose, data = dOJ, paired = FALSE, var.equal = FALSE)
+tVC<-t.test(len~dose, data = dVC, paired = FALSE, var.equal = FALSE)
+
+
+compareall<-data.frame()
+
+tOJ<-c("p"=tOJ$p.value, "CIMIN"=tOJ$conf.int[1],"CIMAX"=tOJ$conf.int[2], "0.5"=tOJ$estimate[1], "1.0"=tOJ$estimate[2])
+
+tVC<-c("p"=tVC$p.value, "CIMIN"=tVC$conf.int[1],"CIMAX"=tVC$conf.int[2], "0.5"=tVC$estimate[1], "1.0"=tVC$estimate[2])
+
+
+tOJVC<-data.frame(rbind(tOJ, tVC ))
+names(tOJVC)<-c("p", "CiMin", "CiMax", "0.5_mean", "1.0_mean")
+rownames(tOJVC)<-c("OJ", "VC")
+```
+```{r echo=TRUE}
+kable(tOJVC)
+```
+
+#Conclusion
+Dose level appears to have a positive effect on tooth growth at every dose level, however we can reject the null hypothesis that dose *and* delivery type have no effect on tooth growth in guinea pigs and suggest that at lower doses, Orange Juice has a greater positive effect.
+
+It appears that at levels below 2.0 mg, Vitamin C delivered via Orange Juice has a greater positive effect on Guinea Pig tooth growth than when delivered as an isolated supplement in the form of Ascorbic Acid.  
+
+The 2.0 dose level has the greatest positive effect on tooth growth, but the distinction between Ascorbic Acid (VC) and Orange Juice (OJ) disappears.
+
+This is based on the assumption that:
+
+* Guinea pigs were from a similar population as regards health
+* Other dietary factors were controlled for.
+
+####Appendix
+
+The R libraries used in this analysis inlude:
+```{r results='markup', echo=T}
+library(datasets)
+library(knitr)
+library(dplyr)
+library(reshape2)
+library(ggplot2)
+library(data.table)
+library(gridExtra)
+
+data(ToothGrowth)
+```
+
+
+The data was subsetted with the following code:
+
+```{r echo=T, results='markup'}
+d0510<-filter(d, dose==c(.5, 1))
+d0520<-filter(d, dose==c(.5, 2))
+d1020<-filter(d, dose==c(1,2))
+
+t0510<-t.test(len~supp, data = d0510, paired = FALSE, var.equal = FALSE)
+t0520<-t.test(len~supp, data = d0520, paired = FALSE, var.equal = FALSE)
+t1020<-t.test(len~supp, data = d1020, paired = FALSE, var.equal = FALSE)
+
+compareall<-data.frame()
+
+t0510<-c("p"=t0510$p.value, "CIMIN"=t0510$conf.int[1],"CIMAX"=t0510$conf.int[2], "OJ"=t0510$estimate[1], "VC"=t0510$estimate[2])
+
+t0520<-c("p"=t0520$p.value, "CIMIN"=t0520$conf.int[1],"CIMAX"=t0520$conf.int[2], "OJ"=t0520$estimate[1], "VC"=t0520$estimate[2])
+
+t1020<-c("p"=t1020$p.value, "CIMIN"=t1020$conf.int[1],"CIMAX"=t1020$conf.int[2], "OJ"=t1020$estimate[1], "VC"=t1020$estimate[2])
+
+tall<-data.frame(rbind(t0510, t0520, t1020 ))
+names(tall)<-c("p", "CiMin", "CiMax", "OJMean", "VCMean")
+rownames(tall)<-c("0.5 vs 1.0 mg", "0.5 vs 2.0 mg", "1.0 vs 2.0 mg")
+```
+
+```{r echo=T, results='markup'}
+final5<-filter(d, dose==0.5)
+final10<-filter(d, dose==1.0)
+
+tfinal5<-t.test(len~supp, data = final5, paired = FALSE, var.equal = FALSE)
+tfinal10<-t.test(len~supp, data=final10, paired=F, var.equal=F)
+
+tfinal5<-c("p"=tfinal5$p.value, "CIMIN"=tfinal5$conf.int[1],"CIMAX"=tfinal5$conf.int[2], "OJ"=tfinal5$estimate[1], "VC"=tfinal5$estimate[2])
+
+tfinal10<-c("p"=tfinal10$p.value, "CIMIN"=tfinal10$conf.int[1],"CIMAX"=tfinal10$conf.int[2], "OJ"=tfinal10$estimate[1], "VC"=tfinal10$estimate[2])
+
+tfinalall<-data.frame(rbind(tfinal5, tfinal10))
+names(tfinalall)<-c("p", "CiMin", "CiMax", "OJMean", "VCMean")
+rownames(tfinalall)<-c(".5 mg", "1.0 mg")
+```
+

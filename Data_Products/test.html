@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>  <script type="application/shiny-singletons">5cfa47d518419bf13dc38170dbe0ffe3b309b4da,d65d0255cec74b332ec530000fe06de633a0ee8c,3cc4881a76c5f56332b4253fa1e9e68505df5511,7cf2243f8792dcf7cfe34a8df8838f4330a0c1e8,3308ba796cef142aa0ab469c4a9bd0aeb747e305</script>  <script type="application/html-dependencies">json2[2014.02.04];jquery[1.11.3];shiny[0.13.0];selectize[0.11.2];htmlwidgets[0.5];leaflet[0.7.3];leafletfix[1.0.0];leaflet-binding[1.0.0];bootstrap[3.3.5]</script><script src="shared/json2-min.js"></script>
+<script src="shared/jquery.min.js"></script>
+<link href="shared/shiny.css" rel="stylesheet" />
+<script src="shared/shiny.min.js"></script>
+<link href="shared/selectize/css/selectize.bootstrap3.css" rel="stylesheet" />
+<!--[if lt IE 9]>
+<script src="shared/selectize/js/es5-shim.min.js"></script>
+<![endif]-->
+<script src="shared/selectize/js/selectize.min.js"></script>
+<script src="htmlwidgets-0.5/htmlwidgets.js"></script>
+<link href="leaflet-0.7.3/leaflet.css" rel="stylesheet" />
+<script src="leaflet-0.7.3/leaflet.js"></script>
+<link href="leafletfix-1.0.0/leafletfix.css" rel="stylesheet" />
+<script src="leaflet-binding-1.0.0/leaflet.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="shared/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+<script src="shared/bootstrap/js/bootstrap.min.js"></script>
+<script src="shared/bootstrap/shim/html5shiv.min.js"></script>
+<script src="shared/bootstrap/shim/respond.min.js"></script>  <title>Mass/Spree Shootings in US, 1982-2015</title>
+  <link href="Nvd3/css/nv.d3.css" rel="stylesheet"/>
+  <link href="Nvd3/css/rNVD3.css" rel="stylesheet"/>
+  <script src="Nvd3/js/d3.v3.min.js" type="text/javascript"></script>
+  <script src="Nvd3/js/nv.d3.min-new.js" type="text/javascript"></script>
+  <script src="Nvd3/js/fisheye.js" type="text/javascript"></script>
+
+</head>
+
+<body>
+  <div class="container-fluid">
+    <h2>Mass/Spree Shootings in US, 1982-2015</h2>
+    <div class="col-sm-4">
+      <form class="well">
+        <div class="form-group shiny-input-container">
+          <div class="checkbox">
+            <label>
+              <input id="check" type="checkbox"/>
+              <span>Use Filter</span>
+            </label>
+          </div>
+        </div>
+        <div class="form-group shiny-input-container">
+          <label class="control-label" for="harm">Type of Harm</label>
+          <div>
+            <select id="harm"><option value="Total.victims" selected>Total victims</option>
+<option value="Fatalities">Fatalities</option>
+<option value="Injured">Injured</option></select>
+            <script type="application/json" data-for="harm" data-nonempty="">{}</script>
+          </div>
+        </div>
+        <div class="form-group shiny-input-container">
+          <label class="control-label" for="mh">Prior Mental Health Issues Identified</label>
+          <div>
+            <select id="mh"><option value="yes" selected>yes</option>
+<option value="no">no</option>
+<option value="unknown">unknown</option></select>
+            <script type="application/json" data-for="mh" data-nonempty="">{}</script>
+          </div>
+        </div>
+        <div class="form-group shiny-input-container">
+          <label class="control-label" for="venue">Venue</label>
+          <div>
+            <select id="venue"><option value="School" selected>School</option>
+<option value="Workplace">Workplace</option>
+<option value="Military">Military</option>
+<option value="Religious">Religious</option>
+<option value="Other">Other</option></select>
+            <script type="application/json" data-for="venue" data-nonempty="">{}</script>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="col-sm-8">
+      <div class="tabbable tabs-above">
+        <ul class="nav nav-tabs">
+          <li class="active">
+            <a href="#tab-8681-1" data-toggle="tab" data-value="Map">Map</a>
+          </li>
+          <li>
+            <a href="#tab-8681-2" data-toggle="tab" data-value="Charts">Charts</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" data-value="Map" id="tab-8681-1">
+            <div id="map" style="width:100%; height:400px" class="leaflet html-widget html-widget-output"></div>
+          </div>
+          <div class="tab-pane" data-value="Charts" id="tab-8681-2">
+            <div id="chart" class="shiny-html-output rChart Nvd3"></div>
+            <div id="plot" class="shiny-plot-output" style="width: 100% ; height: 400px"></div>
+            <div id="table" class="shiny-html-output"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

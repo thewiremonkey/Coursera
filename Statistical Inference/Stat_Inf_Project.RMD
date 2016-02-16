@@ -1,0 +1,194 @@
+---
+title: "Central Limit Theorem"
+author: "Alyssa Goldberg"
+date: '2015-11-21'
+output:
+  word_document:
+    fig_caption: yes
+    fig_height: 4
+    reference_docx: template.docx
+  pdf_document: default
+  html_document:
+    fig_caption: yes
+    keep_md: yes
+---
+#Introduction
+
+The Central Limit Theorem (CLT)states that the distribution of averages of iid variables (properly normalized) becomes that of a standard normal as the *sample size $n$ increases*.  This means that it is possible to get an approximation of mean **$\mu$**, standard deviation **$\sigma$**, and variance **$\sigma^2$**, for the whole distribution with only one observed average ($\bar X_i$) and without knowing the population distribution.
+
+```{r message=FALSE, echo=F}
+rm(list=ls())
+
+library(knitr)
+library(dplyr)
+library(stats)
+# library(reshape2)
+library(ggplot2)
+
+```
+```{r echo=F}
+options(digits = 4)
+```
+
+```{r seed, echo=F}
+set.seed(127)
+```
+```{r constants, echo=F}
+l = 0.2 #lambda, as prescribed in assignment
+ex = 40 #number of exponentials examined
+sims = 1000 #number of simulations
+
+tmean<-1/l #theoretical mean
+tsd<-sqrt(1/.2^2/ex) #theoritical standard deviation
+tvar<-(1/l/sqrt(ex))^2 #theoretical variance
+
+```
+
+#Test the Central Limit Theorem by simulation:
+
+##Some Initial Assumptions
+
+The theoretical mean ($\mu$) and variance $\sigma^2$ of exponential distribution with parameter $\lambda$ are respectively $1/\lambda$ and $1/\lambda^2$,
+
+If the CLT is true, then:
+
+* The mean of our simulation $\bar X_n$ should approach $\mu$
+* The variance of our simulation, $Var_n$ should approach $1/\lambda^2$
+* The variance of our sample mean, $S^2$ should approach $\sigma^2/n$
+* The standard deviation $S$ of our sample mean should approach $\sqrt{\frac{1}{{\lambda^2}/n}}$
+
+Let's find out if this is true by using simulation of **random exponentials** with $n$=40 drawn 1,000 times.  
+
+##Set Constants
+* The rate parameter, $\lambda$ , as prescribed by the assignment, is 0.2 
+* The number of random exponentials to means test, $n$ is 40.
+* The number of simulations of 40 random exponents is 1000
+* The total population, $n$ * 1000 = 40,000
+* Theoretical constants:  
+        - Theoretical means = $\frac{1}{0.2}$ = `r tmean`  
+        - Standard deviation = $\sqrt{\frac{1}{{0.2^2}/40}}$  =`r tsd`  
+        - Variance of sample mean = $\sigma^2/n$ = `r tvar`
+
+##Create the Population, Draw Samples
+
+Draw 40 samples of exponentials, 1,000 times, producing a matrix with 1000 rows and 40 columns and create a vector of means of each of those 1000 rows
+
+```{r echo=TRUE}
+smatrix <- matrix(rexp(ex * sims, .2), nrow = sims, ncol=ex) #produce a 1000 x 40 matrix
+
+smatrixmeans<-data.frame(value=rowMeans(smatrix)) #produce a data frame of the means of the 1000 rows in smatrix
+```
+```{r echo=F}
+# calculate the overall mean of the new data frame
+smean<-mean(smatrixmeans$value) 
+
+# calculate the standard deviation of the new data frame values
+ssd<-sd(smatrixmeans$value) 
+
+# calculate the variance of the new data frame values
+svar<-var(smatrixmeans$value)
+```
+
+##Compare Means:
+
+The theoretical $\mu$ for a population this size=  $1/\lambda$ = `r tmean`.  
+The calculated $\bar X_n$ = `r smean`  
+
+```{r figure1, echo=F, fig.height=4,warning=FALSE}
+par(mfrow=c(1,2), mar=c(4,4,0.5,0.5)+.01, oma=c(1.5,2,1,1),font.main=1, cex=.5)
+
+hist(smatrix, breaks = 40, main="n=40,000", xlab=paste("mean:", round(mean(smatrix), digits = 4), sep=" "))
+abline(v=mean(smatrix), col="red", lwd=1)
+abline(v=tmean, col="blue", lwd=1)
+
+hist(smatrixmeans$value, breaks = 40, main="n=40 X 1000", xlab=paste("mean:", round(mean(smatrixmeans$value), digits = 4), sep=" "))
+abline(v=mean(smatrixmeans$value), col="red", lwd=1)
+abline(v=tmean, col="blue", lwd=1)
+```
+
+##Compare Variance of the Sample Mean:
+Let R calculate the sample mean, sample standard deviation and variance of the sample mean:
+```{r}
+smean<-mean(smatrixmeans$value) #sample mean
+ssd<-sd(smatrixmeans$value) #standard deviation of sample means
+svar<-var(smatrixmeans$value) #variance of sample means
+```
+Producing:
+
+Theoretical Values | |Sample Values  
+------------- |---|-------------
+$\mu$ = `r tmean`  | | $\bar X_n$ = `r smean`
+$\sigma^2$ = `r tvar`  | | $S^2$ = `r svar`
+$\sigma$ = `r sqrt(1/.2^2/ex)`| | $S$ = `r ssd`
+
+##Compare Density Distribution:
+
+```{r echo=F}
+sq<-quantile(smatrixmeans$value, probs = c(0.25, 0.5, 0.75))
+nq<-qnorm(p = c(0.25, 0.5, 0.75), mean = tmean, sd = tsd)
+dsummary<-data.frame(rbind(sq,nq),row.names = c("sample","normal"))
+names(dsummary)<-c("25%", "50%", "75%")
+
+```
+As the number of means of sample means ($n$ times the number of simulations) increases, the density distribution should more closely resemble the normal density distribution:  
+```{r kable, align="c", echo=F}
+kable(dsummary,align = "c")
+
+```
+
+A Quantile-Quantile plot, displaying both the sorted theoretical normal distribution of means of a large sample (straight line) vs the sorted distribution of calculated means (plot points) shows a fairly tight fit, though it varies a bit more at the tails, yet more evidence that the Central Limit Theorem is useful for working with very large data sets.
+
+```{r  echo=F,}
+par(mar=c(3,3,4,0)+.1, oma=c(1.5,2,1,1))
+```
+```{r fig.height=4}
+qqnorm(smatrixmeans$value, col=rgb(.333, 0.42, .18, 0.5))
+qqline(smatrixmeans$value, col="red", lwd=1.5)
+
+```
+
+We can see that the behavior of large samples approaches that of the theoretical normal for Mean, Variance and Density, the closer we get to the theoretical Mean, Variance and Density.
+
+
+
+####APPENDIX
+
+##Libraries:
+```{r message=FALSE, results="asis"}
+library(knitr)
+library(dplyr)
+library(stats)
+library(ggplot2)
+
+```
+##Density Plot Theoretical vs. Sample
+
+To compare densities, we can overlay a density plot for the distribution of the calculated sample means with a theoretical normal distribution density (the classic $bell$ curve) to test this. 
+
+```{r echo=T, tidy=TRUE, fig.width=4, fig.height=3}
+
+#for calculated
+sdx<-svar^2 #density standard deviation
+x.dens <- density(smatrixmeans$value) #create list of densities
+df.dens <- data.frame(x = x.dens$x, y = x.dens$y) #create a dataframe with densities
+varplot<-df.dens[df.dens$x>=smean-svar & df.dens$x<=smean+svar,]#subset the density data to the area of the variance
+
+dnorm_limit <- function(x) {
+    y <- dnorm(x, mean = mean(smatrixmeans$value), sd=sqrt((tmean^2)/ex))
+    y[x < tmean-tvar  |  x > tmean +tvar ] <- NA
+    return(y)
+}
+
+# Normal vs Sample Plot
+p <- ggplot(data.frame(x=c(min(smatrixmeans$value),max(smatrixmeans$value))), aes(x=x))
+
+p + stat_function(fun=dnorm_limit, geom="area", fill="blue", alpha=0.2) +
+    stat_function(fun=dnorm, args=list(mean(smatrixmeans$value), sd=sqrt((tmean^2)/ex)), col="blue",lwd=1, lty=2)+
+        geom_density(data=smatrixmeans, aes(value),alpha=.25, col="red" , lwd=1)+
+        geom_area(data=varplot, aes(x=x,y=y), fill = "red", alpha=.25)+
+        geom_vline(xintercept=tmean, stat = "vline", col="blue")+
+        geom_vline(xintercept=smean, stat = "vline", col="red")+
+        xlab("Theoretical Normal vs Sample Densities")+
+        theme_bw()
+
+```

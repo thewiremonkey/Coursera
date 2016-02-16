@@ -1,0 +1,25 @@
+{
+    "contents" : "",
+    "created" : 1448118565186.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "21CA4728",
+    "lastKnownWriteTime" : 7011605692497750387,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "6jwyaaubct",
+        "caption" : "sdf",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=sdf&cache_key=6jwyaaubct",
+        "displayedObservations" : 2,
+        "environment" : "",
+        "object" : "sdf",
+        "totalObservations" : 2,
+        "variables" : 400
+    },
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "type" : "r_dataframe"
+}

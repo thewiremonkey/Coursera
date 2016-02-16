@@ -1,0 +1,25 @@
+{
+    "contents" : "",
+    "created" : 1448112699428.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "7B9E614B",
+    "lastKnownWriteTime" : 13229740524830817,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "3ykumc1ymi",
+        "caption" : "smatrixmeans",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=smatrixmeans&cache_key=3ykumc1ymi",
+        "displayedObservations" : 1000,
+        "environment" : "",
+        "object" : "smatrixmeans",
+        "totalObservations" : 1000,
+        "variables" : 1
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "type" : "r_dataframe"
+}

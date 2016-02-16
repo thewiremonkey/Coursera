@@ -1,0 +1,25 @@
+{
+    "contents" : "",
+    "created" : 1448118574097.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "FEDB070E",
+    "lastKnownWriteTime" : 3,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "ze9eafczk1",
+        "caption" : "sdfm",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=sdfm&cache_key=ze9eafczk1",
+        "displayedObservations" : 4,
+        "environment" : "",
+        "object" : "sdfm",
+        "totalObservations" : 4,
+        "variables" : 4
+    },
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "type" : "r_dataframe"
+}
